@@ -142,19 +142,51 @@ export default function ChatPage() {
   if (!analysis) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background via-blue-50/30 to-background dark:from-background dark:via-blue-950/10 dark:to-background">
-        <div className="text-center max-w-md px-6 animate-fade-in">
-          <div className="mb-6 p-6 rounded-full bg-blue-100 dark:bg-blue-900/30 w-fit mx-auto">
-            <MessageSquare className="w-16 h-16 text-blue-600 dark:text-blue-400" />
+        <div className="text-center max-w-xl px-6 animate-fade-in">
+          {/* Icon with glow effect */}
+          <div className="relative mb-8 inline-block">
+            <div className="absolute inset-0 bg-blue-400 rounded-full blur-3xl opacity-30 animate-pulse" />
+            <div className="relative p-8 rounded-3xl bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/40 dark:to-purple-900/40 border-4 border-white dark:border-gray-800 shadow-2xl">
+              <MessageSquare className="w-20 h-20 text-blue-600 dark:text-blue-400" />
+            </div>
           </div>
-          <h1 className="text-3xl font-bold mb-4 text-foreground">No Report Loaded</h1>
-          <p className="text-muted-foreground mb-8 text-lg">
-            Please upload a medical report first to start chatting with our AI assistant
+
+          {/* Title */}
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+            No Report Loaded
+          </h1>
+          
+          {/* Description */}
+          <p className="text-gray-600 dark:text-gray-300 mb-10 text-lg leading-relaxed">
+            Upload your medical report to unlock AI-powered insights and get instant answers about your health data
           </p>
+
+          {/* Features */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+              <div className="text-3xl mb-2">🔍</div>
+              <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">Instant Analysis</div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+              <div className="text-3xl mb-2">💡</div>
+              <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">Easy to Understand</div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+              <div className="text-3xl mb-2">🎯</div>
+              <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">Personalized Advice</div>
+            </div>
+          </div>
+          
+          {/* CTA Button */}
           <button
             onClick={() => router.push("/")}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+            className="group relative bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 hover:from-blue-700 hover:via-purple-700 hover:to-blue-700 text-white px-10 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-blue-500/50 transition-all hover:scale-105 active:scale-95"
           >
-            Upload Report
+            <span className="relative z-10 flex items-center gap-2">
+              Upload Report
+              <span className="group-hover:translate-x-1 transition-transform">→</span>
+            </span>
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-20 blur-xl transition-opacity" />
           </button>
         </div>
       </div>
@@ -163,16 +195,29 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-950/20">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 shadow-lg">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
-              <MessageSquare className="w-6 h-6" />
+      {/* Header - Simple & Clean */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 py-4 md:py-5">
+          <div className="flex items-center justify-between">
+            {/* Left: Title */}
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-white/20 backdrop-blur-sm">
+                <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold">AI Medical Assistant</h1>
+                <p className="text-xs md:text-sm text-blue-100 mt-0.5">
+                  Ask questions about your medical report
+                </p>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold">AI Medical Assistant</h1>
+
+            {/* Right: Status Badge */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-xs font-medium">Online</span>
+            </div>
           </div>
-          <p className="text-blue-100 ml-11">Ask questions about your medical report and get instant answers</p>
         </div>
       </div>
 
