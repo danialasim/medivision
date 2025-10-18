@@ -31,7 +31,7 @@ AIzaSyCQGQGj3kZA7f9D_XysF9xAYXQAaOaeJtQ
 
 **Location:** `.env.local`
 ```bash
-GEMINI_API_KEY=AIzaSyCQGQGj3kZA7f9D_XysF9xAYXQAaOaeJtQ
+GEMINI_API_KEY=your-gemini-api-key-here
 ```
 
 ---
