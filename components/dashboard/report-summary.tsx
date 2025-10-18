@@ -1,5 +1,8 @@
+"use client"
+
 import { Card } from "@/components/ui/card"
 import { FileText, Calendar } from "lucide-react"
+import { useEffect, useState } from "react"
 
 interface ReportSummaryProps {
   type: string
@@ -7,11 +10,17 @@ interface ReportSummaryProps {
 }
 
 export function ReportSummary({ type, date }: ReportSummaryProps) {
-  const formattedDate = new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
+  const [formattedDate, setFormattedDate] = useState<string>("")
+
+  useEffect(() => {
+    // Format date on client side only to avoid hydration mismatch
+    const formatted = new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+    setFormattedDate(formatted)
+  }, [date])
 
   return (
     <Card className="p-6">

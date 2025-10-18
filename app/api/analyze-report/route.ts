@@ -1,5 +1,4 @@
-import { openai } from "@ai-sdk/openai"
-import { generateObject } from "ai"
+import { GoogleGenerativeAI } from "@google/generative-ai"
 import { z } from "zod"
 import { mockMedicalAnalysis } from "@/lib/mock-data"
 
@@ -50,8 +49,8 @@ const medicalReportSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      console.log("[v0] Demo mode: No API key found, using mock medical analysis data")
+    if (!process.env.GEMINI_API_KEY) {
+      console.log("[MediVision] Demo mode: No Gemini API key found, using mock medical analysis data")
       return Response.json({ analysis: mockMedicalAnalysis, demoMode: true })
     }
 
@@ -61,61 +60,110 @@ export async function POST(req: Request) {
       return Response.json({ error: "No image data provided" }, { status: 400 })
     }
 
-    const model = openai("gpt-4o", {
-      apiKey: process.env.OPENAI_API_KEY,
-    })
+    // Initialize Gemini with the latest Gemini 2.0 Flash model (FREE tier, most advanced)
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" })
 
-    const { object } = await generateObject({
-      model,
-      schema: medicalReportSchema,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: "Analyze this medical report image and extract all relevant information including test results, abnormal values, and health recommendations. Be thorough and accurate.",
-            },
-            {
-              type: "image",
-              image: imageData,
-            },
-          ],
+    // Convert base64 image data
+    const base64Data = imageData.split(",")[1] || imageData
+    
+    const prompt = `Analyze this medical report image and extract all relevant information. Return the data in the following JSON format:
+
+{
+  "reportType": "Type of medical report (e.g., Blood Test, X-Ray)",
+  "date": "Date of the report",
+  "summary": "Brief summary of the report",
+  "testResults": [
+    {
+      "name": "Test name",
+      "value": numeric value,
+      "unit": "Unit of measurement",
+      "normalRange": "Normal range for this test",
+      "status": "normal" or "borderline" or "abnormal"
+    }
+  ],
+  "abnormalValues": [
+    {
+      "name": "Name of abnormal value",
+      "value": numeric value,
+      "normalRange": "Normal range",
+      "severity": "low" or "medium" or "high",
+      "explanation": "Why this is abnormal and what it means"
+    }
+  ],
+  "recommendations": ["Health recommendation 1", "Health recommendation 2"],
+  "specialists": [
+    {
+      "type": "Type of specialist",
+      "reason": "Reason to see this specialist"
+    }
+  ],
+  "healthStatus": {
+    "normalCount": number of normal results,
+    "borderlineCount": number of borderline results,
+    "abnormalCount": number of abnormal results,
+    "overallStatus": "healthy" or "caution" or "concerning"
+  }
+}
+
+Be thorough and accurate. Extract all test results you can see. For any abnormal values, provide clear explanations. Give practical health recommendations.`
+
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: "image/jpeg",
+          data: base64Data,
         },
-      ],
-    })
+      },
+    ])
 
-    return Response.json({ analysis: object, demoMode: false })
+    const response = await result.response
+    const text = response.text()
+    
+    // Extract JSON from response (Gemini might wrap it in markdown)
+    let jsonText = text
+    if (text.includes("```json")) {
+      jsonText = text.split("```json")[1].split("```")[0].trim()
+    } else if (text.includes("```")) {
+      jsonText = text.split("```")[1].split("```")[0].trim()
+    }
+
+    const analysis = JSON.parse(jsonText)
+    
+    // Validate with Zod
+    const validatedAnalysis = medicalReportSchema.parse(analysis)
+
+    console.log("[MediVision] Successfully analyzed report with Gemini")
+    return Response.json({ analysis: validatedAnalysis, demoMode: false })
+    
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    const errorBody = error instanceof Error && "response" in error ? (error as any).response?.body : null
+    console.error("[MediVision] Error analyzing report:", errorMessage)
 
-    console.error("[v0] Error analyzing report:", errorMessage)
-
-    // Check for quota, billing, or any API errors
+    // Check for API errors
     if (
-      errorMessage.includes("insufficient_quota") ||
+      errorMessage.includes("API_KEY") ||
       errorMessage.includes("quota") ||
       errorMessage.includes("billing") ||
       errorMessage.includes("401") ||
       errorMessage.includes("403") ||
-      errorMessage.includes("429") ||
-      errorBody?.includes("insufficient_quota")
+      errorMessage.includes("429")
     ) {
-      console.log("[v0] API error detected, falling back to demo mode with mock data")
-      return Response.json({ 
-        analysis: mockMedicalAnalysis, 
+      console.log("[MediVision] API error detected, falling back to demo mode with mock data")
+      return Response.json({
+        analysis: mockMedicalAnalysis,
         demoMode: true,
-        reason: "quota_exceeded" 
+        reason: "api_error",
       })
     }
 
     // Fall back to demo mode for any unexpected API errors
-    console.log("[v0] Unexpected error, using demo mode")
-    return Response.json({ 
-      analysis: mockMedicalAnalysis, 
+    console.log("[MediVision] Unexpected error, using demo mode")
+    return Response.json({
+      analysis: mockMedicalAnalysis,
       demoMode: true,
-      reason: "api_error" 
+      reason: "api_error",
     })
   }
 }

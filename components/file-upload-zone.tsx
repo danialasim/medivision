@@ -102,7 +102,7 @@ export function FileUploadZone() {
       if (demoMode) {
         if (reason === "quota_exceeded") {
           toast.error(
-            "⚠️ OpenAI API quota exceeded. Using demo data for demonstration purposes. Please check your billing at platform.openai.com",
+            "⚠️ API error occurred. Using demo data for demonstration purposes.",
             {
               duration: 6000,
               position: "top-center",
@@ -126,7 +126,7 @@ export function FileUploadZone() {
           })
         }
       } else {
-        toast.success("✅ Report analyzed successfully with AI!", {
+        toast.success("✅ Report analyzed successfully with Gemini AI!", {
           duration: 3000,
           position: "top-center",
           icon: "🎉",

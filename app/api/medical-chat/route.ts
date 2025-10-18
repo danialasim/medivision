@@ -1,13 +1,17 @@
-import { openai } from "@ai-sdk/openai"
-import { streamText, convertToModelMessages, type UIMessage } from "ai"
+import { GoogleGenerativeAI } from "@google/generative-ai"
 import { mockChatResponses } from "@/lib/mock-data"
 
 export const maxDuration = 30
 
+interface UIMessage {
+  role: "user" | "assistant"
+  content: string
+}
+
 export async function POST(req: Request) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      console.log("[v0] Demo mode: No API key found, using mock chat responses")
+    if (!process.env.GEMINI_API_KEY) {
+      console.log("[MediVision] Demo mode: No Gemini API key found, using mock chat responses")
       const { messages } = await req.json()
       const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || ""
 
@@ -25,8 +29,18 @@ export async function POST(req: Request) {
       const encoder = new TextEncoder()
       const stream = new ReadableStream({
         start(controller) {
-          controller.enqueue(encoder.encode(`0:"${response}"\n`))
-          controller.close()
+          // Simulate streaming for better UX
+          const words = response.split(" ")
+          let index = 0
+          const intervalId = setInterval(() => {
+            if (index < words.length) {
+              controller.enqueue(encoder.encode(`0:{"type":"text-delta","delta":"${words[index]} "}\n`))
+              index++
+            } else {
+              clearInterval(intervalId)
+              controller.close()
+            }
+          }, 50)
         },
       })
 
@@ -44,9 +58,9 @@ export async function POST(req: Request) {
       return Response.json({ error: "No messages provided" }, { status: 400 })
     }
 
-    const model = openai("gpt-4", {
-      apiKey: process.env.OPENAI_API_KEY,
-    })
+    // Initialize Gemini with the latest Gemini 2.0 Flash model (FREE tier, most advanced)
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" })
 
     const systemPrompt = `You are a helpful medical AI assistant. You have access to the patient's medical report analysis:
 
@@ -57,60 +71,79 @@ Use this context to provide accurate, helpful responses about the patient's heal
 - Provide evidence-based information
 - Recommend consulting healthcare professionals for serious concerns
 - Never provide definitive medical diagnoses
-- Explain medical terms in simple language`
+- Explain medical terms in simple language
 
-    const modelMessages = convertToModelMessages(messages)
+Keep responses concise but informative.`
 
-    const result = streamText({
-      model,
-      system: systemPrompt,
-      messages: modelMessages,
-      maxOutputTokens: 1000,
-      abortSignal: req.signal,
+    // Convert messages to Gemini format
+    const history = messages.slice(0, -1).map((msg: UIMessage) => ({
+      role: msg.role === "user" ? "user" : "model",
+      parts: [{ text: msg.content }],
+    }))
+
+    const chat = model.startChat({
+      history: [
+        {
+          role: "user",
+          parts: [{ text: systemPrompt }],
+        },
+        {
+          role: "model",
+          parts: [{ text: "I understand. I'm here to help you understand your medical report. I'll provide clear, empathetic, and evidence-based information while recommending professional medical consultation for serious concerns." }],
+        },
+        ...history,
+      ],
     })
 
-    return result.toUIMessageStreamResponse()
+    const lastMessage = messages[messages.length - 1].content
+    const result = await chat.sendMessageStream(lastMessage)
+
+    // Create a streaming response
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of result.stream) {
+            const text = chunk.text()
+            if (text) {
+              controller.enqueue(encoder.encode(`0:{"type":"text-delta","delta":"${text}"}\n`))
+            }
+          }
+          controller.close()
+        } catch (error) {
+          console.error("[MediVision] Stream error:", error)
+          controller.error(error)
+        }
+      },
+    })
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+      },
+    })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    const errorBody = error instanceof Error && "response" in error ? (error as any).response?.body : null
+    console.error("[MediVision] Error in medical chat:", errorMessage)
 
-    console.error("[v0] Error in medical chat:", errorMessage)
-
-    // Check for quota, billing, or any API errors
-    if (
-      errorMessage.includes("insufficient_quota") ||
-      errorMessage.includes("quota") ||
-      errorMessage.includes("billing") ||
-      errorMessage.includes("401") ||
-      errorMessage.includes("403") ||
-      errorMessage.includes("429") ||
-      errorBody?.includes("insufficient_quota")
-    ) {
-      console.log("[v0] API error detected, falling back to demo mode")
-      const mockResponse = mockChatResponses.default
-      const encoder = new TextEncoder()
-      const stream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(encoder.encode(`0:"${mockResponse}"\n`))
-          controller.close()
-        },
-      })
-      return new Response(stream, {
-        headers: {
-          "Content-Type": "text/plain; charset=utf-8",
-          "Transfer-Encoding": "chunked",
-        },
-      })
-    }
-
-    // Fall back to demo mode for any unexpected API errors
-    console.log("[v0] Unexpected error, using demo mode")
+    // Fall back to demo mode for any API errors
+    console.log("[MediVision] API error detected, falling back to demo mode")
     const mockResponse = mockChatResponses.default
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
       start(controller) {
-        controller.enqueue(encoder.encode(`0:"${mockResponse}"\n`))
-        controller.close()
+        const words = mockResponse.split(" ")
+        let index = 0
+        const intervalId = setInterval(() => {
+          if (index < words.length) {
+            controller.enqueue(encoder.encode(`0:{"type":"text-delta","delta":"${words[index]} "}\n`))
+            index++
+          } else {
+            clearInterval(intervalId)
+            controller.close()
+          }
+        }, 50)
       },
     })
     return new Response(stream, {

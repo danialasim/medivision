@@ -2,9 +2,9 @@
 
 ![MediVision](https://img.shields.io/badge/MediVision-AI%20Health%20Assistant-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black)
-![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-green)
+![Gemini](https://img.shields.io/badge/Google-Gemini%201.5-green)
 
-**MediVision** is an intelligent medical report analysis application that uses OpenAI's GPT-4o Vision API to analyze medical reports and provide instant health insights.
+**MediVision** is an intelligent medical report analysis application that uses **Google Gemini AI** (FREE tier available!) to analyze medical reports and provide instant health insights.
 
 ## ✨ Features
 
@@ -20,7 +20,7 @@
 ### Prerequisites
 
 - Node.js 18+ installed
-- OpenAI API key with available credits
+- Google Gemini API key (FREE tier available - no credit card required!)
 
 ### Installation
 
@@ -29,12 +29,14 @@
    npm install
    ```
 
-2. **Set up your OpenAI API key**
+2. **Set up your Gemini API key**
    
    Create a `.env.local` file in the root directory:
    ```bash
-   OPENAI_API_KEY=sk-your-actual-openai-api-key-here
+   GEMINI_API_KEY=your-gemini-api-key-here
    ```
+   
+   **Get your FREE Gemini API key:** https://makersuite.google.com/app/apikey
 
 3. **Run the development server**
    ```bash
@@ -45,77 +47,72 @@
    
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-## ⚠️ IMPORTANT: OpenAI Quota Exceeded Error
+## ⚠️ IMPORTANT: Using Google Gemini (FREE!)
 
-### Current Issue
-If you see this error when analyzing a report:
-```
-You exceeded your current quota, please check your plan and billing details.
-```
+### Current Setup:
+Your app now uses **Google Gemini AI** instead of OpenAI, which offers:
 
-### What This Means
-Your OpenAI API account has run out of credits or exceeded usage limits.
+✅ **FREE tier with 1 million tokens per month**
+✅ **No credit card required**
+✅ **15 requests per minute**
+✅ **Vision analysis included**
 
-### How to Fix
+### Get Your Gemini API Key:
 
-#### ✅ Option 1: Add Credits to OpenAI (Recommended for Real Analysis)
+1. **Visit Google AI Studio**
+   - Go to: https://makersuite.google.com/app/apikey
 
-1. **Go to OpenAI Billing**
-   - Visit: https://platform.openai.com/settings/organization/billing
+2. **Sign in with Google Account**
+   - Use any Google account (free)
 
-2. **Add Payment Method**
-   - Click "Add payment method"
-   - Enter your credit card details
+3. **Create API Key**
+   - Click "Create API Key"
+   - Copy the key
 
-3. **Add Credits**
-   - Click "Add to credit balance"  
-   - Add at least **$5-$10** for testing
-   - Recommended: **$20** for comfortable usage
-
-4. **Check Usage**
-   - Visit: https://platform.openai.com/usage
-   - Monitor your API usage
+4. **Add to `.env.local`**
+   ```bash
+   GEMINI_API_KEY=your-gemini-api-key-here
+   ```
 
 5. **Restart App**
    ```bash
    npm run dev
    ```
 
-#### 📺 Option 2: Use Demo Mode (No Cost)
+### Free Tier Limits:
+- ✅ **1,500 requests per day** - FREE
+- ✅ **15 requests per minute** - FREE  
+- ✅ **1 million tokens per month** - FREE
+- ✅ ~**100-200 medical reports per month** - FREE
 
-The app automatically shows demo data when:
-- API quota is exceeded
-- No API key is configured
-- API errors occur
+**For detailed Gemini setup:** See `GEMINI_SETUP.md`
 
-**Demo mode shows:**
-- Sample medical report analysis
-- Example chat responses  
-- All UI features working
+## 💰 Gemini Pricing (Much Better!)
 
-**Perfect for:**
-- Testing the interface
-- Understanding features
-- Demonstrating the app
+### Free Tier:
+- **1 million tokens per month** - **FREE**
+- **15 requests per minute** - **FREE**
+- **Vision analysis** - **FREE**
+- **No credit card required** - **FREE**
 
-## 💰 OpenAI Pricing
+### Paid Tier (if you exceed):
+- $0.02 per 1M tokens (very cheap!)
+- Pay only for what you use
 
-### Models Used
-- **GPT-4o Vision** (Image Analysis): ~$0.01-$0.05 per report
-- **GPT-4** (Chat): ~$0.03 per 1K tokens
+### Cost Comparison:
+| Feature | Gemini Free | Gemini Paid | OpenAI |
+|---------|-------------|-------------|--------|
+| Report Analysis | **FREE** | $0.001 | $0.01-$0.05 |
+| Chat Message | **FREE** | $0.0001 | $0.001-$0.01 |
+| Monthly Limit | **1M tokens FREE** | Unlimited | Pay per use |
 
-### Estimated Costs
-- 1 medical report analysis: **$0.01 - $0.05**
-- 10 chat messages: **$0.10 - $0.30**
-- Daily usage (10 reports + 50 messages): **$1 - $3**
-
-**Budget Recommendation**: $10-$20 for testing, $50+ for regular use
+**Result:** ~100-200 reports per month **completely FREE** with Gemini!
 
 ## 🏗️ Tech Stack
 
 - **Framework**: Next.js 15.5.4
 - **Language**: TypeScript
-- **AI**: OpenAI GPT-4o Vision, Vercel AI SDK
+- **AI**: Google Gemini 1.5 Flash (FREE tier!)
 - **Styling**: Tailwind CSS v4
 - **UI Components**: shadcn/ui, Radix UI
 - **Icons**: Lucide React
@@ -125,20 +122,20 @@ The app automatically shows demo data when:
 ## 🎯 How It Works
 
 1. **Upload** - Drag & drop medical report image (PNG, JPG)
-2. **Analyze** - GPT-4o Vision extracts all medical information
+2. **Analyze** - Gemini AI Vision extracts all medical information (FREE!)
 3. **Dashboard** - View comprehensive health analysis
-4. **Chat** - Ask AI questions about your results
+4. **Chat** - Ask Gemini AI questions about your results (FREE!)
 
 ## 🔧 Troubleshooting
 
-### "Quota exceeded" error
-→ Add credits to OpenAI account (see above)
+### "API key not found"  
+→ Create `.env.local` with `GEMINI_API_KEY=your-key`
 
-### "No API key found"  
-→ Create `.env.local` with your API key
+### "Rate limit exceeded"
+→ Free tier: 15 requests/minute, wait 1 minute
 
 ### "Invalid API key"
-→ Verify key at https://platform.openai.com/api-keys
+→ Get new key at https://makersuite.google.com/app/apikey
 
 ### Server won't start
 ```bash
@@ -149,10 +146,10 @@ npm run dev
 
 ## 🔗 Useful Links
 
-- [OpenAI Billing](https://platform.openai.com/settings/organization/billing) - Add credits
-- [OpenAI Usage](https://platform.openai.com/usage) - Monitor usage
-- [OpenAI API Keys](https://platform.openai.com/api-keys) - Manage keys
-- [OpenAI Help](https://help.openai.com/) - Support
+- [Google AI Studio](https://makersuite.google.com/app/apikey) - Get your FREE API key
+- [Gemini API Docs](https://ai.google.dev/docs) - Documentation
+- [Gemini Quickstart](https://ai.google.dev/tutorials/get_started_node) - Getting started
+- [MediVision Gemini Guide](./GEMINI_SETUP.md) - Detailed setup guide
 
 ## 📄 License
 
